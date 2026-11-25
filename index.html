@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mijn Nederlandse Notitieboek</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Crect width='30' height='10' fill='%23ae1c28'/%3E%3Crect y='10' width='30' height='10' fill='%23fff'/%3E%3Crect y='20' width='30' height='10' fill='%2321468b'/%3E%3Crect x='.5' y='.5' width='29' height='29' fill='none' stroke='%23999'/%3E%3C/svg%3E">
+<style>
+:root{--bg:#fbf8f3;--card:#fff;--ink:#1d2433;--mute:#6b7280;--line:#e5e0d6;--accent:#e8590c;--accent2:#1c4e9c;--ok:#2f9e44;--bad:#c92a2a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171f;--card:#1d222d;--ink:#eceff4;--mute:#9aa3b2;--line:#2c3342;--accent:#ff8a4c;--accent2:#7ea8ff;--ok:#51cf66;--bad:#ff6b6b}}
+:root[data-theme="dark"]{--bg:#14171f;--card:#1d222d;--ink:#eceff4;--mute:#9aa3b2;--line:#2c3342;--accent:#ff8a4c;--accent2:#7ea8ff;--ok:#51cf66;--bad:#ff6b6b}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{background:var(--accent2);color:#fff;padding:20px 16px 0}
+header h1{margin:0;font-size:1.5rem}
+header p{margin:2px 0 12px;opacity:.85;font-size:.9rem}
+nav{display:flex;gap:4px;overflow-x:auto}
+nav button{background:transparent;border:0;color:#fff;opacity:.7;padding:10px 14px;font:inherit;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+nav button.on{opacity:1;border-color:var(--accent)}
+main{max-width:760px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;margin-bottom:8px}
+button.btn{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:9px 14px;font:inherit;cursor:pointer}
+button.alt{background:transparent;color:var(--accent2);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font:inherit;cursor:pointer}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1;min-width:120px}
+.wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+td,th{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--mute);font-size:.8rem;text-transform:uppercase}
+.nl{font-weight:600;color:var(--accent2)}
+.tag{font-size:.72rem;background:var(--line);border-radius:99px;padding:2px 8px;color:var(--mute);margin-left:4px}
+.rule h3{margin:0 0 6px;color:var(--accent)}
+.rule code,.ex{background:var(--bg);border-radius:6px;padding:2px 6px}
+.ex{display:block;margin:4px 0;padding:6px 8px}
+.flash{min-height:180px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:1.7rem;cursor:pointer;user-select:none}
+.mute{color:var(--mute);font-size:.85rem}
+.del{color:var(--bad);background:none;border:0;cursor:pointer}
+</style>
+</head>
+<body>
+<header>
+<h1>🇳🇱 Mijn Nederlandse Notitieboek</h1>
+<p>Words, rules and spellings from Busuu &amp; Duolingo</p>
+<nav id="nav"></nav>
+</header>
+<main id="main"></main>
+<script>
+const SEED=[
+["hallo","hello","greetings"],["goedemorgen","good morning","greetings"],["goedemiddag","good afternoon","greetings"],["goedenavond","good evening","greetings"],["tot ziens","goodbye","greetings"],["alsjeblieft","please / here you go","greetings"],["dank je wel","thank you","greetings"],["graag gedaan","you're welcome","greetings"],["sorry","sorry","greetings"],["ja / nee","yes / no","greetings"],
+["één","one","numbers"],["twee","two","numbers"],["drie","three","numbers"],["vier","four","numbers"],["vijf","five","numbers"],["zes","six","numbers"],["zeven","seven","numbers"],["acht","eight","numbers"],["negen","nine","numbers"],["tien","ten","numbers"],
+["het brood","bread","food"],["de kaas","cheese","food"],["het water","water","food"],["de koffie","coffee","food"],["de appel","apple","food"],["de melk","milk","food"],
+["de fiets","bicycle","travel"],["de trein","train","travel"],["de tram","tram","travel"],["het station","station","travel"],["de brug","bridge","travel"],["de straat","street","travel"],
+["ik","I","pronouns"],["jij / je","you","pronouns"],["hij","he","pronouns"],["zij / ze","she / they","pronouns"],["wij / we","we","pronouns"],
+["wonen","to live","verbs"],["werken","to work","verbs"],["eten","to eat","verbs"],["drinken","to drink","verbs"],["spreken","to speak","verbs"],["leren","to learn","verbs"]
+];
+const RULES=[
+["de or het?","Dutch has two 'the' words. <b>de</b> is used for most words (about 3 out of 4) and all plurals. <b>het</b> is used for neuter words and all diminutives (-je).<span class='ex'>de fiets · het huis · de huizen (plural) · het boekje</span>Tip: learn each noun together with its article."],
+["zijn (to be)","<span class='ex'>ik ben · jij bent · hij/zij is · wij zijn · jullie zijn · zij zijn</span>Note: when 'jij' comes after the verb, the -t drops: <i>Ben jij moe?</i>"],
+["hebben (to have)","<span class='ex'>ik heb · jij hebt · hij/zij heeft · wij hebben · jullie hebben · zij hebben</span>"],
+["Regular verbs (present)","Take the stem (infinitive minus -en) and add endings.<span class='ex'>wonen → stem woon<br>ik woon · jij woont · hij woont · wij wonen</span>Jij/hij/zij add -t. Wij/jullie/zij use the full infinitive."],
+["Word order: verb second","In a main sentence the verb is always in position 2, even if something else comes first.<span class='ex'>Ik woon in Adelaide.<br>Vandaag werk ik. (not: Vandaag ik werk)</span>"],
+["Questions","Put the verb first for yes/no questions.<span class='ex'>Spreek jij Nederlands?</span>With a question word: question word, then verb, then subject.<span class='ex'>Waar woon jij? · Wat eet je?</span>"],
+["Negation: niet vs geen","<b>geen</b> negates a noun with 'een' or no article. <b>niet</b> negates everything else.<span class='ex'>Ik heb geen fiets.<br>Ik werk niet.</span>"],
+["Plurals","Most nouns add <b>-en</b> (boek → boeken) or <b>-s</b> (appel → appels). Watch spelling changes, see Spelling tab."]
+];
+const SPELL=[
+["ij","Counts as one letter-sound, like 'ay' in 'say'. Capitalised together: <b>IJsland</b>, <b>IJs</b>.","<b>ijs</b>, <b>tijd</b>, <b>mijn</b>"],
+["ui","A rounded sound with no English equivalent.","<b>huis</b>, <b>uit</b>, <b>buiten</b>"],
+["oe / eu / ie","oe = 'oo' in 'moon'. eu = like French 'peu'. ie = 'ee' in 'see'.","<b>goed</b>, <b>leuk</b>, <b>fiets</b>"],
+["Open syllable: single vowel","A long vowel in an open syllable is written once; in a closed syllable it is doubled.","<b>maken</b> (ma-ken) but <b>maak</b> (stem). <b>boom</b> → <b>bomen</b>"],
+["Doubled consonant after short vowel","To keep a vowel short before -en, double the consonant.","<b>bakken</b>, <b>zitten</b>, <b>man → mannen</b>"],
+["f/v and s/z swap","A word ending in -f or -s often becomes -v or -z in the plural or verb form.","<b>brief → brieven</b>, <b>huis → huizen</b>, <b>leven</b>"],
+["g and ch","Both make a throaty sound. g is not a hard 'g' like English.","<b>goed</b>, <b>nacht</b>, <b>lachen</b>"],
+["w and v","w is between English 'v' and 'w'. v is often like 'f'.","<b>wij</b>, <b>van</b>, <b>veel</b>"]
+];
+const K="dutchNotebook.v1";
+let st={words:[],rules:[],fc:{i:0,show:false,topic:"all"}};
+function load(){try{const r=localStorage.getItem(K);if(r)st=Object.assign(st,JSON.parse(r))}catch(e){}}
+function save(){try{localStorage.setItem(K,JSON.stringify({words:st.words,rules:st.rules}))}catch(e){}}
+load();
+const TABS=["Words","Rules","Spelling","Flashcards","My notes"];
+let tab="Words",q="",cat="all";
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function allWords(){return SEED.map(w=>({nl:w[0],en:w[1],cat:w[2],mine:false})).concat(st.words.map((w,i)=>({...w,mine:true,idx:i})))}
+function nav(){document.getElementById("nav").innerHTML=TABS.map(t=>`<button class="${t===tab?"on":""}" onclick="go('${t}')">${t}</button>`).join("")}
+function go(t){tab=t;render()}
+function render(){nav();const m=document.getElementById("main");
+if(tab==="Words")m.innerHTML=words();
+else if(tab==="Rules")m.innerHTML=RULES.map(r=>`<div class="card rule"><h3>${r[0]}</h3>${r[1]}</div>`).join("")+myRules();
+else if(tab==="Spelling")m.innerHTML=`<div class="card wrap"><table><tr><th>Pattern</th><th>Rule</th><th>Examples</th></tr>${SPELL.map(s=>`<tr><td class="nl">${s[0]}</td><td>${s[1]}</td><td>${s[2]}</td></tr>`).join("")}</table></div>`;
+else if(tab==="Flashcards")m.innerHTML=flash();
+else m.innerHTML=notes();}
+function words(){const ws=allWords();const cats=["all",...new Set(ws.map(w=>w.cat))];
+const f=ws.filter(w=>(cat==="all"||w.cat===cat)&&(w.nl+w.en).toLowerCase().includes(q.toLowerCase()));
+return `<div class="card"><div class="row"><input id="s" placeholder="Search words…" value="${esc(q)}" oninput="q=this.value;keep()"><select onchange="cat=this.value;render()">${cats.map(c=>`<option ${c===cat?"selected":""}>${c}</option>`).join("")}</select></div><div class="mute">${f.length} words. Add your own in the My notes tab.</div></div>
+<div class="card wrap"><table><tr><th>Dutch</th><th>English</th><th></th></tr>${f.map(w=>`<tr><td class="nl">${esc(w.nl)}</td><td>${esc(w.en)}<span class="tag">${esc(w.cat)}</span>${w.mine?`<button class="del" title="Delete" onclick="delWord(${w.idx})">✕</button>`:""}</td><td></td></tr>`).join("")}</table></div>`}
+function keep(){const p=document.getElementById("s").selectionStart;render();const e=document.getElementById("s");e.focus();e.setSelectionRange(p,p)}
+function delWord(i){st.words.splice(i,1);save();render()}
+function myRules(){return st.rules.map((r,i)=>`<div class="card rule"><h3>${esc(r.t)} <span class="tag">mine</span><button class="del" onclick="delRule(${i})">✕</button></h3><div style="white-space:pre-wrap">${esc(r.b)}</div></div>`).join("")}
+function delRule(i){st.rules.splice(i,1);save();render()}
+function notes(){return `<div class="card"><h3 style="margin-top:0">Add a word</h3><div class="row"><input id="nl" placeholder="Dutch (e.g. de kat)"><input id="en" placeholder="English (e.g. cat)"></div><div class="row"><input id="ct" placeholder="Category (e.g. animals)" list="cl"><datalist id="cl">${[...new Set(allWords().map(w=>w.cat))].map(c=>`<option>${c}</option>`).join("")}</datalist><button class="btn" onclick="addWord()">Add word</button></div></div>
+<div class="card"><h3 style="margin-top:0">Add a rule or spelling note</h3><input id="rt" placeholder="Title"><textarea id="rb" rows="4" placeholder="Explain it in your own words, with an example"></textarea><button class="btn" onclick="addRule()">Add to Rules</button></div>
+<div class="card mute">Your additions are saved in this browser only, on this device.</div>`}
+function addWord(){const nl=v("nl"),en=v("en"),ct=v("ct")||"other";if(!nl||!en)return;st.words.push({nl,en,cat:ct});save();tab="Words";cat="all";q="";render()}
+function addRule(){const t=v("rt"),b=v("rb");if(!t||!b)return;st.rules.push({t,b});save();tab="Rules";render()}
+function v(id){return document.getElementById(id).value.trim()}
+function deck(){return allWords().filter(w=>st.fc.topic==="all"||w.cat===st.fc.topic)}
+function flash(){const d=deck();const cats=["all",...new Set(allWords().map(w=>w.cat))];if(st.fc.i>=d.length)st.fc.i=0;const w=d[st.fc.i];
+return `<div class="card"><select onchange="st.fc.topic=this.value;st.fc.i=0;st.fc.show=false;render()">${cats.map(c=>`<option ${c===st.fc.topic?"selected":""}>${c}</option>`).join("")}</select>
+<div class="flash" onclick="st.fc.show=!st.fc.show;render()">${w?(st.fc.show?esc(w.en):`<span class="nl">${esc(w.nl)}</span>`):"No words"}</div>
+<div class="mute" style="text-align:center">Tap card to flip · ${st.fc.i+1} / ${d.length}</div>
+<div class="row" style="margin-top:10px"><button class="alt" onclick="nx(-1)">← Back</button><button class="alt" onclick="shuf()">Shuffle</button><button class="alt" onclick="nx(1)">Next →</button></div></div>`}
+function nx(n){const d=deck();st.fc.i=(st.fc.i+n+d.length)%d.length;st.fc.show=false;render()}
+function shuf(){const d=deck();st.fc.i=Math.floor(Math.random()*d.length);st.fc.show=false;render()}
+render();
+</script>
+</body>
+</html>

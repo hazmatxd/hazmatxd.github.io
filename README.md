@@ -1,4 +1,6 @@
 ## Hi there 👋
+I've wanted to start learning Dutch for some random reason, and I've always wanted to make a website. So why not combine the two? This is a basic handbook I made with Claude to assist me with some of the rules and spellings.
+Enjoy! 
 
 <!--
 **hazmatxd/hazmatxd** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.

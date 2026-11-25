@@ -12,12 +12,14 @@
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-header{background:linear-gradient(135deg,#1c4e9c,#2f6fd6);color:#fff;padding:24px 16px 0;border-radius:0 0 18px 18px}
+header{position:relative;background:linear-gradient(135deg,var(--h1,#1c4e9c),var(--h2,#2f6fd6));color:#fff;padding:24px 16px 0;border-radius:0 0 18px 18px}
 header h1{margin:0;font-size:1.5rem}
 header p{margin:2px 0 12px;opacity:.85;font-size:.9rem}
 nav{display:flex;gap:4px;overflow-x:auto}
 nav button{background:rgba(255,255,255,.14);border:0;color:#fff;padding:8px 16px;font:inherit;cursor:pointer;border-radius:99px;white-space:nowrap;margin-bottom:16px}
-nav button.on{background:#fff;color:#1c4e9c;font-weight:600}
+nav button.on{background:#fff;color:var(--h1,#1c4e9c);font-weight:600}
+.spk{background:none;border:0;cursor:pointer;font-size:1rem;margin-left:4px;padding:0 2px;vertical-align:middle}
+.tg{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.18);border:0;color:#fff;border-radius:99px;padding:6px 12px;font:inherit;font-size:.8rem;cursor:pointer}
 main{max-width:760px;margin:0 auto;padding:16px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 2px 6px rgba(0,0,0,.06)}
 .rule{border-left:5px solid var(--accent)}
@@ -56,6 +58,7 @@ label.mute{display:block;margin-bottom:3px}
 </head>
 <body>
 <header>
+<button class="tg" id="tg" onclick="cycleMode()">Theme</button>
 <h1><svg width="30" height="20" viewBox="0 0 30 20" style="vertical-align:-2px;margin-right:8px"><rect width="30" height="7" fill="#ae1c28"/><rect y="7" width="30" height="6" fill="#fff"/><rect y="13" width="30" height="7" fill="#21468b"/></svg>Mijn Nederlandse Notitieboek</h1>
 <p>Words, rules and spellings from Busuu &amp; Duolingo</p>
 <nav id="nav"></nav>
@@ -127,7 +130,7 @@ let st={words:[],rules:[],fc:{i:0,show:false,topic:"all"}};
 function load(){try{const r=localStorage.getItem(K);if(r)st=Object.assign(st,JSON.parse(r))}catch(e){}}
 function save(){try{localStorage.setItem(K,JSON.stringify({words:st.words,rules:st.rules}))}catch(e){}}
 load();
-const TABS=["Words","Rules","Spelling","Flashcards","Quiz","My notes"];
+const TABS=["Words","Rules","Spelling","Flashcards","Quiz","My notes","Theme"];
 let tab="Words",q="",cat="all";
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
 function allWords(){return SEED.map(w=>({nl:w[0],en:w[1],cat:w[2],mine:false})).concat(st.words.map((w,i)=>({...w,mine:true,idx:i})))}
@@ -139,6 +142,7 @@ else if(tab==="Rules")m.innerHTML=RULES.map(r=>`<div class="card rule"><h3>${r[0
 else if(tab==="Spelling")m.innerHTML=`<div class="card wrap"><table><tr><th>Pattern</th><th>Rule</th><th>Examples</th></tr>${SPELL.map(s=>`<tr><td class="nl">${s[0]}</td><td>${s[1]}</td><td>${s[2]}</td></tr>`).join("")}</table></div>`;
 else if(tab==="Flashcards")m.innerHTML=flash();
 else if(tab==="Quiz")m.innerHTML=quiz();
+else if(tab==="Theme")m.innerHTML=theme();
 else m.innerHTML=notes();}
 const PREP=["in","op","naast","onder","bij","naar","van","uit","met","zonder","voor","aan"],CONJ=["en","maar","of","want","omdat"];
 function pill(w){const n=w.nl.toLowerCase();let t;
@@ -149,7 +153,7 @@ return `<span class="pill p-${t}">${t}</span>`}
 function words(){const ws=allWords();const cats=["all",...new Set(ws.map(w=>w.cat))];
 const f=ws.filter(w=>(cat==="all"||w.cat===cat)&&(w.nl+w.en).toLowerCase().includes(q.toLowerCase()));
 return `<div class="card"><div class="row"><input id="s" placeholder="Search words…" value="${esc(q)}" oninput="q=this.value;keep()"><select onchange="cat=this.value;render()">${cats.map(c=>`<option ${c===cat?"selected":""}>${c}</option>`).join("")}</select></div><div class="mute">${f.length} words. Add your own in the My notes tab.</div></div>
-<div class="card wrap"><table><tr><th>Dutch</th><th>English</th><th></th></tr>${f.map(w=>`<tr><td class="nl">${esc(w.nl)}${pill(w)}</td><td>${esc(w.en)}<span class="tag">${esc(w.cat)}</span>${w.mine?`<button class="del" title="Delete" onclick="delWord(${w.idx})">✕</button>`:""}</td><td></td></tr>`).join("")}</table></div>`}
+<div class="card wrap"><table><tr><th>Dutch</th><th>English</th><th></th></tr>${f.map(w=>`<tr><td class="nl">${esc(w.nl)}${pill(w)}${spk(w.nl)}</td><td>${esc(w.en)}<span class="tag">${esc(w.cat)}</span>${w.mine?`<button class="del" title="Delete" onclick="delWord(${w.idx})">✕</button>`:""}</td><td></td></tr>`).join("")}</table></div>`}
 function keep(){const p=document.getElementById("s").selectionStart;render();const e=document.getElementById("s");e.focus();e.setSelectionRange(p,p)}
 function delWord(i){st.words.splice(i,1);save();render()}
 function myRules(){return st.rules.map((r,i)=>`<div class="card rule"><h3>${esc(r.t)} <span class="tag">mine</span><button class="del" onclick="delRule(${i})">✕</button></h3><div style="white-space:pre-wrap">${esc(r.b)}</div></div>`).join("")}
@@ -163,11 +167,46 @@ function v(id){return document.getElementById(id).value.trim()}
 function deck(){return allWords().filter(w=>st.fc.topic==="all"||w.cat===st.fc.topic)}
 function flash(){const d=deck();const cats=["all",...new Set(allWords().map(w=>w.cat))];if(st.fc.i>=d.length)st.fc.i=0;const w=d[st.fc.i];
 return `<div class="card"><select onchange="st.fc.topic=this.value;st.fc.i=0;st.fc.show=false;render()">${cats.map(c=>`<option ${c===st.fc.topic?"selected":""}>${c}</option>`).join("")}</select>
-<div class="flash" onclick="st.fc.show=!st.fc.show;render()">${w?(st.fc.show?esc(w.en):`<span class="nl">${esc(w.nl)}${pill(w)}</span>`):"No words"}</div>
+<div class="flash" onclick="st.fc.show=!st.fc.show;render()">${w?(st.fc.show?esc(w.en):`<span class="nl">${esc(w.nl)}${pill(w)}${spk(w.nl)}</span>`):"No words"}</div>
 <div class="mute" style="text-align:center">Tap card to flip · ${st.fc.i+1} / ${d.length}</div>
 <div class="row" style="margin-top:10px"><button class="alt" onclick="nx(-1)">← Back</button><button class="alt" onclick="shuf()">Shuffle</button><button class="alt" onclick="nx(1)">Next →</button></div></div>`}
 function nx(n){const d=deck();st.fc.i=(st.fc.i+n+d.length)%d.length;st.fc.show=false;render()}
 function shuf(){const d=deck();st.fc.i=Math.floor(Math.random()*d.length);st.fc.show=false;render()}
+/* ---------- AUDIO ---------- */
+let warned=false;
+function say(t){
+if(!("speechSynthesis" in window)){alert("This browser can't read words aloud.");return}
+speechSynthesis.cancel();
+const u=new SpeechSynthesisUtterance(t.replace(/…/g,"").replace(/\s*\/\s*/g,", "));
+u.lang="nl-NL";u.rate=.85;
+const vs=speechSynthesis.getVoices();
+const v=vs.find(x=>x.lang&&x.lang.toLowerCase().startsWith("nl"));
+if(v)u.voice=v;
+else if(vs.length&&!warned){warned=true;alert("No Dutch voice was found on this device, so it may sound wrong. Chrome usually has one online; on Windows you can add Dutch speech in Settings > Time & language.")}
+speechSynthesis.speak(u)}
+function spk(t){return `<button class="spk" title="Listen" data-t="${esc(t)}" onclick="event.stopPropagation();say(this.dataset.t)">🔊</button>`}
+/* ---------- THEME ---------- */
+const TK="dutchNotebook.theme";
+let th={mode:"auto"};
+try{const r=localStorage.getItem(TK);if(r)th=Object.assign({mode:"auto"},JSON.parse(r))}catch(e){}
+const DEF={accent:"#e8590c",accent2:"#1c4e9c",h1:"#1c4e9c",h2:"#2f6fd6"};
+const PRE={standard:{},tulip:{accent:"#d6336c",accent2:"#862e9c",h1:"#862e9c",h2:"#d6336c"},canal:{accent:"#0c8599",accent2:"#1864ab",h1:"#0b3d6b",h2:"#1c7ed6"},forest:{accent:"#2f9e44",accent2:"#2b8a3e",h1:"#1b5e20",h2:"#40a35a"},oranje:{accent:"#e8590c",accent2:"#c2410c",h1:"#e8590c",h2:"#f59f00"}};
+function applyTheme(){const r=document.documentElement;
+if(th.mode==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",th.mode);
+for(const k of ["accent","accent2","h1","h2"]){if(th[k])r.style.setProperty("--"+k,th[k]);else r.style.removeProperty("--"+k)}
+const b=document.getElementById("tg");if(b)b.textContent="Theme: "+th.mode[0].toUpperCase()+th.mode.slice(1)}
+function saveTheme(){try{localStorage.setItem(TK,JSON.stringify(th))}catch(e){}applyTheme()}
+function preset(n){th={mode:th.mode,...PRE[n]};saveTheme();render()}
+function setMode(m){th.mode=m;saveTheme();render()}
+function cycleMode(){setMode({auto:"light",light:"dark",dark:"auto"}[th.mode])}
+function setC(k,v){th[k]=v;saveTheme()}
+function theme(){
+const c=(k,l)=>`<label class="mute">${l}</label><input type="color" value="${th[k]||DEF[k]}" oninput="setC('${k}',this.value)" style="height:42px;padding:3px">`;
+const cap=s=>s[0].toUpperCase()+s.slice(1);
+return `<div class="card"><h3 style="margin-top:0">Light or dark</h3><div class="row">${["auto","light","dark"].map(m=>`<button class="alt" style="${th.mode===m?"border-color:var(--accent);color:var(--accent);font-weight:700":""}" onclick="setMode('${m}')">${cap(m)}</button>`).join("")}</div><div class="mute" style="margin-top:8px">Auto follows your device's setting.</div></div>
+<div class="card"><h3 style="margin-top:0">Colour presets</h3><div class="row">${Object.keys(PRE).map(n=>`<button class="alt" onclick="preset('${n}')">${cap(n)}</button>`).join("")}</div></div>
+<div class="card"><h3 style="margin-top:0">Pick your own colours</h3><div class="row"><div>${c("accent","Buttons & highlights")}</div><div>${c("accent2","Headings & Dutch words")}</div></div><div class="row"><div>${c("h1","Banner (left)")}</div><div>${c("h2","Banner (right)")}</div></div><button class="alt" onclick="preset('standard')">Reset colours</button><div class="mute" style="margin-top:8px">Saved in this browser. Your colours apply in both light and dark mode, so check they stay readable in both.</div></div>`}
+applyTheme();
 let qs={cat:"all",dir:"nl",n:10},qz=null;
 function sh(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function startQ(list){const all=allWords();const pool=list||all.filter(w=>qs.cat==="all"||w.cat===qs.cat);
@@ -181,7 +220,7 @@ return `<div class="card"><h3 style="margin-top:0">Quiz yourself</h3><label clas
 if(qz.i>=qz.q.length){const n=qz.q.length;
 return `<div class="card"><div class="big">${qz.score} / ${n}</div><div class="mute" style="text-align:center">${qz.score===n?"Perfect! Goed gedaan!":qz.score>=n*0.7?"Nice work, keep going.":"Good practice, try the missed ones again."}</div>${qz.wrong.length?`<h3>To review</h3><table>${qz.wrong.map(w=>`<tr><td class="nl">${esc(w.nl)}</td><td>${esc(w.en)}</td></tr>`).join("")}</table>`:""}<div class="row" style="margin-top:12px">${qz.wrong.length?`<button class="btn" onclick="startQ(qz.wrong.slice())">Retry missed</button>`:""}<button class="alt" onclick="qz=null;render()">New quiz</button></div></div>`}
 const q=qz.q[qz.i];
-return `<div class="card"><div class="bar"><i style="width:${qz.i/qz.q.length*100}%"></i></div><div class="mute" style="margin-top:6px">Question ${qz.i+1} of ${qz.q.length} · Score ${qz.score}</div><div class="big">${esc(q.p)}</div>${q.opts.map((o,k)=>`<button class="opt ${q.pick===null?"":(o===q.ans?"ok":(k===q.pick?"no":""))}" onclick="ans(${k})">${esc(o)}</button>`).join("")}${q.pick!==null?`<button class="btn" onclick="qz.i++;render()">${qz.i+1===qz.q.length?"See results":"Next →"}</button>`:""}</div>`}
+return `<div class="card"><div class="bar"><i style="width:${qz.i/qz.q.length*100}%"></i></div><div class="mute" style="margin-top:6px">Question ${qz.i+1} of ${qz.q.length} · Score ${qz.score}</div><div class="big">${esc(q.p)}${qs.dir==="nl"?spk(q.w.nl):""}</div>${q.opts.map((o,k)=>`<button class="opt ${q.pick===null?"":(o===q.ans?"ok":(k===q.pick?"no":""))}" onclick="ans(${k})">${esc(o)}</button>`).join("")}${q.pick!==null?`<button class="btn" onclick="qz.i++;render()">${qz.i+1===qz.q.length?"See results":"Next →"}</button>`:""}</div>`}
 render();
 </script>
 </body>

@@ -46,6 +46,12 @@ th{color:var(--mute);font-size:.8rem;text-transform:uppercase}
 .bar>i{display:block;height:100%;background:var(--accent)}
 .big{font-size:1.7rem;text-align:center;margin:16px 0;font-weight:700;color:var(--accent2)}
 label.mute{display:block;margin-bottom:3px}
+.pill{display:inline-block;font-size:.68rem;font-weight:700;border-radius:99px;padding:1px 9px;margin-left:6px;vertical-align:1px;text-transform:uppercase;letter-spacing:.04em;background:rgba(127,127,127,.18);color:var(--mute)}
+.p-de{background:rgba(47,111,214,.18);color:var(--accent2)}
+.p-het{background:rgba(232,89,12,.18);color:var(--accent)}
+.p-verb{background:rgba(47,158,68,.18);color:var(--ok)}
+.p-adj{background:rgba(176,95,201,.2);color:#b05fc9}
+.p-prep,.p-conj{background:rgba(240,180,0,.2);color:#c99700}
 </style>
 </head>
 <body>
@@ -134,10 +140,16 @@ else if(tab==="Spelling")m.innerHTML=`<div class="card wrap"><table><tr><th>Patt
 else if(tab==="Flashcards")m.innerHTML=flash();
 else if(tab==="Quiz")m.innerHTML=quiz();
 else m.innerHTML=notes();}
+const PREP=["in","op","naast","onder","bij","naar","van","uit","met","zonder","voor","aan"],CONJ=["en","maar","of","want","omdat"];
+function pill(w){const n=w.nl.toLowerCase();let t;
+if(n.startsWith("de "))t="de";else if(n.startsWith("het "))t="het";
+else if(PREP.includes(n))t="prep";else if(CONJ.includes(n))t="conj";
+else{const m={verbs:"verb",adjectives:"adj",phrases:"phrase",greetings:"phrase",numbers:"number",colours:"colour","question words":"question",pronouns:"pronoun","days & months":"date",time:"adv",travel:"adv","small words":"adv"};t=m[w.cat]||"word"}
+return `<span class="pill p-${t}">${t}</span>`}
 function words(){const ws=allWords();const cats=["all",...new Set(ws.map(w=>w.cat))];
 const f=ws.filter(w=>(cat==="all"||w.cat===cat)&&(w.nl+w.en).toLowerCase().includes(q.toLowerCase()));
 return `<div class="card"><div class="row"><input id="s" placeholder="Search words…" value="${esc(q)}" oninput="q=this.value;keep()"><select onchange="cat=this.value;render()">${cats.map(c=>`<option ${c===cat?"selected":""}>${c}</option>`).join("")}</select></div><div class="mute">${f.length} words. Add your own in the My notes tab.</div></div>
-<div class="card wrap"><table><tr><th>Dutch</th><th>English</th><th></th></tr>${f.map(w=>`<tr><td class="nl">${esc(w.nl)}</td><td>${esc(w.en)}<span class="tag">${esc(w.cat)}</span>${w.mine?`<button class="del" title="Delete" onclick="delWord(${w.idx})">✕</button>`:""}</td><td></td></tr>`).join("")}</table></div>`}
+<div class="card wrap"><table><tr><th>Dutch</th><th>English</th><th></th></tr>${f.map(w=>`<tr><td class="nl">${esc(w.nl)}${pill(w)}</td><td>${esc(w.en)}<span class="tag">${esc(w.cat)}</span>${w.mine?`<button class="del" title="Delete" onclick="delWord(${w.idx})">✕</button>`:""}</td><td></td></tr>`).join("")}</table></div>`}
 function keep(){const p=document.getElementById("s").selectionStart;render();const e=document.getElementById("s");e.focus();e.setSelectionRange(p,p)}
 function delWord(i){st.words.splice(i,1);save();render()}
 function myRules(){return st.rules.map((r,i)=>`<div class="card rule"><h3>${esc(r.t)} <span class="tag">mine</span><button class="del" onclick="delRule(${i})">✕</button></h3><div style="white-space:pre-wrap">${esc(r.b)}</div></div>`).join("")}
@@ -151,7 +163,7 @@ function v(id){return document.getElementById(id).value.trim()}
 function deck(){return allWords().filter(w=>st.fc.topic==="all"||w.cat===st.fc.topic)}
 function flash(){const d=deck();const cats=["all",...new Set(allWords().map(w=>w.cat))];if(st.fc.i>=d.length)st.fc.i=0;const w=d[st.fc.i];
 return `<div class="card"><select onchange="st.fc.topic=this.value;st.fc.i=0;st.fc.show=false;render()">${cats.map(c=>`<option ${c===st.fc.topic?"selected":""}>${c}</option>`).join("")}</select>
-<div class="flash" onclick="st.fc.show=!st.fc.show;render()">${w?(st.fc.show?esc(w.en):`<span class="nl">${esc(w.nl)}</span>`):"No words"}</div>
+<div class="flash" onclick="st.fc.show=!st.fc.show;render()">${w?(st.fc.show?esc(w.en):`<span class="nl">${esc(w.nl)}${pill(w)}</span>`):"No words"}</div>
 <div class="mute" style="text-align:center">Tap card to flip · ${st.fc.i+1} / ${d.length}</div>
 <div class="row" style="margin-top:10px"><button class="alt" onclick="nx(-1)">← Back</button><button class="alt" onclick="shuf()">Shuffle</button><button class="alt" onclick="nx(1)">Next →</button></div></div>`}
 function nx(n){const d=deck();st.fc.i=(st.fc.i+n+d.length)%d.length;st.fc.show=false;render()}
